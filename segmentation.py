@@ -52,7 +52,7 @@ plt.title('Mask')
 plt.show()
 '''
 
-from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D, concatenate  # Import layers
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D # Import layers
 from tensorflow.keras.models import Model  # Import Model class
 
 def unet_model(input_size=(256, 256, 3)):
