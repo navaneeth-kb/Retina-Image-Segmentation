@@ -35,10 +35,10 @@ def load_images(image_dir,mask_dir,image_size=(256,256),image_format='tif'):
 #Load data
 x_train,y_train=load_images(train_images_dir,train_masks_dir)
 
+'''
 #Display an eg
 plt.figure(figsize=(10,5))
 
-'''
 #Eg image
 plt.subplot(1,2,1)
 plt.imshow(x_train[0])
