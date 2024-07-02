@@ -7,6 +7,11 @@ This layer is like a scout summarizing information from a large area. Imagine yo
 UpSampling2D (Upsampling 2D Layer):
 This layer does the opposite of MaxPooling2D. It increases the resolution of an image. Imagine you have a small, blurry image, and you want to make it bigger and clearer. UpSampling2D achieves this by duplicating each pixel multiple times.
 
+------------------------------------------------------------------------------------------------------
+
+sigmoid function:
+Squishing the Values: The sigmoid function takes any number as input and squeezes it between 0 (like the switch completely off) and 1 (like the switch completely on). This is helpful in tasks like image segmentation where we want the model's output to represent probabilities. (often 0 for background and 1 for foreground)
+
 relu (activation='relu'): This defines the activation function used in the convolutional layer. An activation function introduces non-linearity into the model, allowing it to learn more complex relationships between the input data and the output. 
 
 padding (padding='same'): This specifies how to handle the edges of the image during the convolution operation. By default, some amount of image data might be lost around the borders due to the filter size. Padding helps address this by adding extra data (often zeros) around the borders of the image. Here, 'padding='same'' ensures the output image has the same dimensions (height and width) as the input image.
