@@ -32,3 +32,23 @@ model = Model(inputs=inputs, outputs=outputs) - This line combines all the layer
 6. Returning the Model:
 
 return model - This line returns the created model, making it usable for training and prediction tasks.
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+Breaking down the compile method:
+
+a. Optimizer
+optimizer='adam':
+The Adam optimizer is a popular choice for training deep learning models. It adjusts the learning rate throughout training, which helps the model learn more efficiently.
+Think of the optimizer as the mechanism that tweaks the model's parameters (weights) to minimize the error in predictions.
+
+b. Loss Function
+loss='binary_crossentropy':
+The loss function measures how well the model's predictions match the true labels.
+For binary segmentation (where each pixel is either part of the object or not), binary_crossentropy is a common choice. It calculates the error for binary classification tasks.
+
+c. Metrics
+metrics=['accuracy']:
+Metrics are used to evaluate the performance of the model. Here, we're using accuracy, which measures the percentage of correctly predicted pixels.
+During training, you'll see the accuracy score, which helps you understand how well the model is doing
+
