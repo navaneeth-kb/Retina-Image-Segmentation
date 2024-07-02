@@ -88,11 +88,13 @@ x=int (input("Enter Epoch value:"))
 # Train the model
 history = model.fit(x_train, y_train, epochs=x, batch_size=8, validation_split=0.1)
 
+'''
 # Plot training history
 plt.plot(history.history['loss'], label='Training Loss')
 plt.plot(history.history['val_loss'], label='Validation Loss')
 plt.legend()
 plt.show()
+'''
 
 # Save the model
 model.save('unet_model.h5')
