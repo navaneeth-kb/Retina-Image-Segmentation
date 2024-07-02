@@ -72,3 +72,18 @@ metrics=['accuracy']:
 Metrics are used to evaluate the performance of the model. Here, we're using accuracy, which measures the percentage of correctly predicted pixels.
 During training, you'll see the accuracy score, which helps you understand how well the model is doing
 
+-----------------------------------------------------------------------------------------------------------------
+
+epochs (epochs=x):
+
+This refers to the number of times the entire training dataset is passed through the model during training. Imagine you have a stack of flashcards (your training data) with questions and answers. 
+
+batch_size (batch_size=8):
+
+This defines the number of data points (images and their corresponding labels) that are processed by the model at a time during training. Think of it like taking a smaller handful of flashcards from your stack (the entire training dataset) to study at once.
+A larger batch size (e.g., 32 or 64) can potentially improve training speed by utilizing hardware resources more efficiently. However, a very large batch size might require more memory and could lead to the model getting stuck in suboptimal solutions. A smaller batch size (e.g., 8) might be slower but can sometimes help the model navigate complex problems and avoid getting stuck. Finding the optimal batch size often involves experimentation.
+
+validation_split (validation_split=0.1):
+
+This is a technique used to monitor the model's performance on unseen data during training. It takes a fraction (0.1 in this case, which is 10%) of your training data and sets it aside as the "validation set." The model is not trained on this data, but it's used to evaluate the model's performance periodically throughout the training process.
+
