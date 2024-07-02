@@ -1,3 +1,18 @@
+Conv2D (Convolutional 2D Layer):
+Imagine you have a grid of colored tiles that represents an image. A Conv2D layer is like a special filter that slides across this grid, one position at a time. As it slides, it multiplies the colors of the tiles it overlaps with by specific weights and then sums those products up. This gives you a single value that kind of captures the essence of what the filter "sees" in that local area of the image.
+
+MaxPooling2D (Max Pooling 2D Layer):
+This layer is like a scout summarizing information from a large area. Imagine you have a big grid of tiles, and you want to shrink it down but still capture important details. MaxPooling2D does this by dividing the grid into smaller regions and keeping only the most significant value from each region.
+
+UpSampling2D (Upsampling 2D Layer):
+This layer does the opposite of MaxPooling2D. It increases the resolution of an image. Imagine you have a small, blurry image, and you want to make it bigger and clearer. UpSampling2D achieves this by duplicating each pixel multiple times.
+
+relu (activation='relu'): This defines the activation function used in the convolutional layer. An activation function introduces non-linearity into the model, allowing it to learn more complex relationships between the input data and the output. 
+
+padding (padding='same'): This specifies how to handle the edges of the image during the convolution operation. By default, some amount of image data might be lost around the borders due to the filter size. Padding helps address this by adding extra data (often zeros) around the borders of the image. Here, 'padding='same'' ensures the output image has the same dimensions (height and width) as the input image.
+
+----------------------------------------------------------------------------------------------------------
+
 U-Net model. 
 Let's break it down step-by-step:
 
