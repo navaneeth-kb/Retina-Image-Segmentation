@@ -3,6 +3,8 @@ import numpy as np  # For numerical operations
 import matplotlib.pyplot as plt  # For plotting images
 import tensorflow as tf  # For building and training the model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array  # For loading and converting images
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D # Import layers
+from tensorflow.keras.models import Model  # Import Model class
 
 # Define paths to image directories
 data_dir = r'C:\Users\navan\Downloads\archive\DRIVE'  # Replace with your dataset path
@@ -34,26 +36,6 @@ def load_images(image_dir,mask_dir,image_size=(256,256),image_format='tif'):
 
 #Load data
 x_train,y_train=load_images(train_images_dir,train_masks_dir)
-
-'''
-#Display an eg
-plt.figure(figsize=(10,5))
-
-#Eg image
-plt.subplot(1,2,1)
-plt.imshow(x_train[0])
-plt.title('Image')
-
-#Eg mask
-plt.subplot(1,2,2)
-plt.imshow(y_train[0])
-plt.title('Mask')
-
-plt.show()
-'''
-
-from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D # Import layers
-from tensorflow.keras.models import Model  # Import Model class
 
 def unet_model(input_size=(256, 256, 3)):
     inputs = Input(input_size)  # Define the input layer
