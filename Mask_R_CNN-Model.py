@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 from tensorflow.keras.layers import Input, Conv2D, Conv2DTranspose, MaxPooling2D, UpSampling2D
-from tensorflow.keras.models import Model, load_model
+from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 
 # Define paths to image directories
@@ -70,7 +70,7 @@ while True:
     if image_path.lower() == 'exit':
         break
 
-    predicted_mask = predict_blood_vessel_mask(trained_model, image_path)
+    predicted_mask = predict_blood_vessel_mask(model, image_path)
 
     # Display the input image and predicted mask
     plt.figure(figsize=(12, 6))
