@@ -60,9 +60,24 @@ def unet_model(input_size=(256, 256, 3)):
 
     return model
 
+def f1_score(y_true, y_pred):
+    y_pred = tf.round(y_pred)
+    tp = K.sum(K.cast(y_true * y_pred, 'float'), axis=0)
+    fp = K.sum(K.cast((1 - y_true) * y_pred, 'float'), axis=0)
+    fn = K.sum(K.cast(y_true * (1 - y_pred), 'float'), axis=0)
+
+    p = tp / (tp + fp + K.epsilon())
+    r = tp / (tp + fn + K.epsilon())
+
+    f1 = 2 * p * r / (p + r + K.epsilon())
+    return K.mean(f1)
+
 # Create model
 model = unet_model()
-model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])  # Compile the model
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy',
+                  tf.keras.metrics.MeanIoU(num_classes=2),
+                  tf.keras.metrics.AUC(name='auc'),
+                  f1_score])  # Compile the model
 
 # Display the model summary
 model.summary()
