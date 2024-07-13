@@ -1,128 +1,115 @@
-import os  # For handling file paths
-import numpy as np  # For numerical operations
-import matplotlib.pyplot as plt  # For plotting images
-import tensorflow as tf  # For building and training the model
-from tensorflow.keras.preprocessing.image import load_img, img_to_array  # For loading and converting images
-from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D # Import layers
-from tensorflow.keras.models import Model  # Import Model class
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
+from tensorflow.keras.layers import Input, Conv2D, Conv2DTranspose, MaxPooling2D, UpSampling2D, BatchNormalization
+from tensorflow.keras.models import Model
+from tensorflow.keras.optimizers import Adam
+import tensorflow as tf
 
-# Define paths to image directories
 data_dir = r'C:\Users\navan\Downloads\archive\DRIVE'  # Replace with your dataset path
 train_images_dir = os.path.join(data_dir, r'training\images')
 train_masks_dir = os.path.join(data_dir, r'training\1st_manual')
 
-def load_images(image_dir,mask_dir,image_size=(256,256),image_format='tif'):
-    images=[]
-    masks=[]
+def load_images(image_dir, mask_dir, image_size=(256, 256)):
+    images = []
+    masks = []
     for img_file in os.listdir(image_dir):
-        img_path=os.path.join(image_dir,img_file)
+        img_path = os.path.join(image_dir, img_file)
 
         # Adjust mask file extension
-        if image_format == 'tif':
-            mask_path = os.path.join(mask_dir, img_file.replace('training', 'manual1').replace('.tif', '.gif'))
-        else:
-            mask_path = os.path.join(mask_dir, img_file.replace('training', 'manual1'))
+        mask_file = img_file.replace('training', 'manual1').replace('.tif', '.gif')
+        mask_path = os.path.join(mask_dir, mask_file)
 
-        img=load_img(img_path,target_size=image_size)
-        mask=load_img(mask_path,target_size=image_size,color_mode='grayscale')
+        img = load_img(img_path, target_size=image_size)
+        mask = load_img(mask_path, target_size=image_size, color_mode='grayscale')
 
-        img=img_to_array(img)/255.0
-        mask=img_to_array(mask)/255.0
+        img = img_to_array(img) / 255.0
+        mask = img_to_array(mask) / 255.0
 
         images.append(img)
         masks.append(mask)
 
-    return np.array(images),np.array(masks)
+    return np.array(images), np.array(masks)
 
-#Load data
-x_train,y_train=load_images(train_images_dir,train_masks_dir)
+# Load data
+x_train, y_train = load_images(train_images_dir, train_masks_dir)
 
 def unet_model(input_size=(256, 256, 3)):
-    inputs = Input(input_size)  # Define the input layer
+    inputs = Input(input_size)
 
     # Encoder
     c1 = Conv2D(64, 3, activation='relu', padding='same')(inputs)
+    c1 = BatchNormalization()(c1)
     c1 = Conv2D(64, 3, activation='relu', padding='same')(c1)
+    c1 = BatchNormalization()(c1)
     p1 = MaxPooling2D(pool_size=(2, 2))(c1)
 
     c2 = Conv2D(128, 3, activation='relu', padding='same')(p1)
+    c2 = BatchNormalization()(c2)
     c2 = Conv2D(128, 3, activation='relu', padding='same')(c2)
+    c2 = BatchNormalization()(c2)
     p2 = MaxPooling2D(pool_size=(2, 2))(c2)
 
+    # Bottleneck
+    c3 = Conv2D(256, 3, activation='relu', padding='same')(p2)
+    c3 = BatchNormalization()(c3)
+    c3 = Conv2D(256, 3, activation='relu', padding='same')(c3)
+    c3 = BatchNormalization()(c3)
+
     # Decoder
-    u3 = UpSampling2D(size=(2, 2))(c2)
-    c3 = Conv2D(64, 3, activation='relu', padding='same')(u3)
-    c3 = Conv2D(64, 3, activation='relu', padding='same')(c3)
+    u4 = UpSampling2D(size=(2, 2))(c3)
+    u4 = Conv2D(128, 3, activation='relu', padding='same')(u4)
+    u4 = BatchNormalization()(u4)
+    u4 = Conv2D(128, 3, activation='relu', padding='same')(u4)
+    u4 = BatchNormalization()(u4)
 
-    outputs = Conv2D(1, 1, activation='sigmoid', padding='same')(c3)  # Define the output layer
+    u5 = UpSampling2D(size=(2, 2))(u4)
+    u5 = Conv2D(64, 3, activation='relu', padding='same')(u5)
+    u5 = BatchNormalization()(u5)
+    u5 = Conv2D(64, 3, activation='relu', padding='same')(u5)
+    u5 = BatchNormalization()(u5)
 
-    model = Model(inputs=inputs, outputs=outputs)  # Create the model
+    outputs = Conv2D(1, 1, activation='sigmoid', padding='same')(u5)
+
+    model = Model(inputs=inputs, outputs=outputs)
 
     return model
 
-def f1_score(y_true, y_pred):
-    y_pred = tf.round(y_pred)
-    tp = K.sum(K.cast(y_true * y_pred, 'float'), axis=0)
-    fp = K.sum(K.cast((1 - y_true) * y_pred, 'float'), axis=0)
-    fn = K.sum(K.cast(y_true * (1 - y_pred), 'float'), axis=0)
+x = int(input("Enter Epoch value:"))
 
-    p = tp / (tp + fp + K.epsilon())
-    r = tp / (tp + fn + K.epsilon())
-
-    f1 = 2 * p * r / (p + r + K.epsilon())
-    return K.mean(f1)
-
-# Create model
 model = unet_model()
-model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy',
-                  tf.keras.metrics.MeanIoU(num_classes=2),
-                  tf.keras.metrics.AUC(name='auc'),
-                  f1_score])  # Compile the model
-
-# Display the model summary
-model.summary()
-
-x=int (input("Enter Epoch value:"))
-
-# Train the model
+model.compile(optimizer=Adam(), loss='binary_crossentropy', metrics=['accuracy',
+                  tf.keras.metrics.MeanIoU(num_classes=2),tf.keras.metrics.AUC(name='auc')])
 history = model.fit(x_train, y_train, epochs=x, batch_size=8, validation_split=0.1)
 
-'''
-# Plot training history
-plt.plot(history.history['loss'], label='Training Loss')
-plt.plot(history.history['val_loss'], label='Validation Loss')
-plt.legend()
-plt.show()
-'''
-
-# Save the model
-model.save('unet_model.h5')
-
-# Function to predict the mask for a new image
-def predict_mask(model, image_path, image_size=(256, 256)):
+def predict_blood_vessel_mask(model, image_path, image_size=(256, 256)):
     img = load_img(image_path, target_size=image_size)
-    img = img_to_array(img) / 255.0
-    img = np.expand_dims(img, axis=0)  # Add batch dimension
-    pred_mask = model.predict(img)[0]
-    return pred_mask
+    img_array = img_to_array(img) / 255.0
+    img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
 
-y=input("Enter the retinal image path:")
+    # Predict mask
+    mask = model.predict(img_array)[0]
 
-# Predict the mask
-predicted_mask = predict_mask(model,y)
+    return mask
 
-# Display the input image and the predicted mask
-plt.figure(figsize=(10, 5))
+while True:
+    image_path = input("Enter the retinal image path (or type 'exit' to quit): ")
+    if image_path.lower() == 'exit':
+        break
 
-# Input image
-plt.subplot(1, 2, 1)
-input_img = load_img(y, target_size=(256, 256))
-plt.imshow(input_img)
-plt.title('Input Image')
+    predicted_mask = predict_blood_vessel_mask(model, image_path)
 
-# Predicted mask
-plt.subplot(1, 2, 2)
-plt.imshow(predicted_mask, cmap='gray')
-plt.title('Predicted Blood Vessel Mask')
+    plt.figure(figsize=(12, 6))
 
-plt.show()
+    plt.subplot(1, 2, 1)
+    input_img = load_img(image_path, target_size=(256, 256))
+    plt.imshow(input_img)
+    plt.title('Input Retinal Image')
+
+    plt.subplot(1, 2, 2)
+    plt.imshow(predicted_mask, cmap='gray')
+    plt.title('Predicted Blood Vessel Mask')
+
+    plt.tight_layout()
+    plt.show()
