@@ -7,11 +7,9 @@ from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, MaxPoolin
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 
-# Load dataset
 data_dir = r'C:\Users\navan\Downloads\archive\DRIVE'  # Replace with your dataset path
 train_images_dir = os.path.join(data_dir, r'training\images')
 train_masks_dir = os.path.join(data_dir, r'training\1st_manual')
-
 
 def load_images(image_dir, mask_dir, image_size=(256, 256)):
     images = []
@@ -19,7 +17,6 @@ def load_images(image_dir, mask_dir, image_size=(256, 256)):
     for img_file in os.listdir(image_dir):
         img_path = os.path.join(image_dir, img_file)
 
-        # Adjust mask file extension
         mask_file = img_file.replace('training', 'manual1').replace('.tif', '.gif')
         mask_path = os.path.join(mask_dir, mask_file)
 
@@ -34,12 +31,8 @@ def load_images(image_dir, mask_dir, image_size=(256, 256)):
 
     return np.array(images), np.array(masks)
 
-
-# Load training data
 x_train, y_train = load_images(train_images_dir, train_masks_dir)
 
-
-# Define UNet model
 def unet_model(input_size=(256, 256, 3), filters=64):
     inputs = Input(input_size)
 
@@ -80,8 +73,6 @@ def unet_model(input_size=(256, 256, 3), filters=64):
     model = Model(inputs=inputs, outputs=outputs)
     return model
 
-
-# Dice Loss and F1 Score remain the same
 def dice_loss(y_true, y_pred, smooth=1):
     y_true_f = tf.keras.backend.flatten(y_true)
     y_pred_f = tf.keras.backend.flatten(y_pred)
@@ -122,18 +113,17 @@ for i in range(3):
 
 # Knowledge distillation: Train students with both ground truth and teacher's predictions
 for student_model in student_models:
-    # Use both y_train (ground truth) and teacher_model's predictions (soft labels)
+    
     teacher_predictions = teacher_model.predict(x_train)
 
     # Loss is combined: ground truth + teacher predictions
     student_model.fit(x_train, [y_train, teacher_predictions], epochs=250, batch_size=8, validation_split=0.1)
 
 
-# Predict using student models
 def predict_with_student_models(student_models, image_path, image_size=(256, 256)):
     img = load_img(image_path, target_size=image_size)
     img_array = img_to_array(img) / 255.0
-    img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
+    img_array = np.expand_dims(img_array, axis=0)  
 
     predictions = []
     for student_model in student_models:
@@ -145,7 +135,6 @@ def predict_with_student_models(student_models, image_path, image_size=(256, 256
     return final_mask
 
 
-# Predict blood vessel masks using student models
 while True:
     image_path = input("Enter the retinal image path (or type 'exit' to quit): ")
     if image_path.lower() == 'exit':
