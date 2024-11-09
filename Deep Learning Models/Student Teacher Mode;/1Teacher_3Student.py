@@ -7,7 +7,7 @@ from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, MaxPoolin
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 
-data_dir = r'C:\Users\navan\Downloads\archive\DRIVE'  # Replace with your dataset path
+data_dir = r'C:\Users\navan\Downloads\archive\DRIVE'  
 train_images_dir = os.path.join(data_dir, r'training\images')
 train_masks_dir = os.path.join(data_dir, r'training\1st_manual')
 
