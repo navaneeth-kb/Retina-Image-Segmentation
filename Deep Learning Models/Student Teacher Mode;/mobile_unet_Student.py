@@ -7,11 +7,9 @@ from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, MaxPoolin
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 
-# Load dataset
-data_dir = r'C:\Users\navan\Downloads\archive\DRIVE'  # Replace with your dataset path
+data_dir = r'C:\Users\navan\Downloads\archive\DRIVE' 
 train_images_dir = os.path.join(data_dir, r'training\images')
 train_masks_dir = os.path.join(data_dir, r'training\1st_manual')
-
 
 def load_images(image_dir, mask_dir, image_size=(256, 256)):
     images = []
@@ -35,11 +33,8 @@ def load_images(image_dir, mask_dir, image_size=(256, 256)):
     return np.array(images), np.array(masks)
 
 
-# Load training data
 x_train, y_train = load_images(train_images_dir, train_masks_dir)
 
-
-# Define UNet model
 def unet_model(input_size=(256, 256, 3), filters=64):
     inputs = Input(input_size)
 
@@ -81,13 +76,11 @@ def unet_model(input_size=(256, 256, 3), filters=64):
     return model
 
 
-# Dice Loss and F1 Score remain the same
 def dice_loss(y_true, y_pred, smooth=1):
     y_true_f = tf.keras.backend.flatten(y_true)
     y_pred_f = tf.keras.backend.flatten(y_pred)
     intersection = tf.keras.backend.sum(y_true_f * y_pred_f)
     return 1 - (2. * intersection + smooth) / (tf.keras.backend.sum(y_true_f) + tf.keras.backend.sum(y_pred_f) + smooth)
-
 
 def f1_score(y_true, y_pred):
     def recall_m(y_true, y_pred):
@@ -110,7 +103,7 @@ x = int(input("Enter Epoch value:"))
 
 print("\nTeacher modal\n")
 
-# Build teacher model (larger UNet model)
+
 teacher_model = unet_model(filters=64)
 teacher_model.compile(optimizer=Adam(), loss=dice_loss, metrics=['accuracy', tf.keras.metrics.MeanIoU(num_classes=2), tf.keras.metrics.AUC(name='auc'),
                                f1_score])
@@ -154,7 +147,7 @@ def mobile_unet(input_size=(256, 256, 3), filters=32):
     model = Model(inputs=inputs, outputs=outputs)
     return model
 
-# Build three student models using Mobile UNet
+
 student_models = []
 for i in range(3):
     student_model = mobile_unet(filters=32)  # Use Mobile UNet here
@@ -174,26 +167,24 @@ for student_model in student_models:
 
 
 def evaluate_models(teacher_model, student_models, x_data, y_data):
-    # Initialize accumulators for student models
+
     avg_student_auc = 0
     avg_student_mean_iou = 0
     avg_student_accuracy = 0
     avg_student_f1_score = 0
 
-    # First, evaluate the teacher model
     print("\nEvaluating Teacher Model:")
     teacher_results = teacher_model.evaluate(x_data, y_data, verbose=0)
-    teacher_accuracy = teacher_results[1]  # Accuracy is at index 1
-    teacher_mean_iou = teacher_results[2]  # Mean IoU is at index 2
-    teacher_auc = teacher_results[3]  # AUC is at index 3
-    teacher_f1 = teacher_results[4]  # F1 score is at index 4
+    teacher_accuracy = teacher_results[1] 
+    teacher_mean_iou = teacher_results[2] 
+    teacher_auc = teacher_results[3]  
+    teacher_f1 = teacher_results[4]  
 
     print(f"Teacher Accuracy: {teacher_accuracy:.4f}")
     print(f"Teacher Mean IoU: {teacher_mean_iou:.4f}")
     print(f"Teacher AUC: {teacher_auc:.4f}")
     print(f"Teacher F1 Score: {teacher_f1:.4f}")
 
-    # Now, evaluate each student model
     print("\nEvaluating Student Models:")
     for i, student_model in enumerate(student_models):
         results = student_model.evaluate(x_data, y_data, verbose=0)
@@ -206,13 +197,12 @@ def evaluate_models(teacher_model, student_models, x_data, y_data):
         print(
             f"Student Model {i + 1} - Accuracy: {accuracy:.4f}, Mean IoU: {mean_iou:.4f}, AUC: {auc:.4f}, F1 Score: {f1:.4f}")
 
-        # Accumulate results for averaging
+       
         avg_student_accuracy += accuracy
         avg_student_mean_iou += mean_iou
         avg_student_auc += auc
         avg_student_f1_score += f1
 
-    # Calculate the average for student models
     num_students = len(student_models)
     avg_student_accuracy /= num_students
     avg_student_mean_iou /= num_students
@@ -225,7 +215,7 @@ def evaluate_models(teacher_model, student_models, x_data, y_data):
     print(f"Average Student AUC: {avg_student_auc:.4f}")
     print(f"Average Student F1 Score: {avg_student_f1_score:.4f}")
 
-    # Calculate the overall average performance (Teacher + Students)
+
     overall_avg_accuracy = (teacher_accuracy + avg_student_accuracy) / (num_students + 1)
     overall_avg_mean_iou = (teacher_mean_iou + avg_student_mean_iou) / (num_students + 1)
     overall_avg_auc = (teacher_auc + avg_student_auc) / (num_students + 1)
@@ -237,29 +227,25 @@ def evaluate_models(teacher_model, student_models, x_data, y_data):
     print(f"Overall Average AUC: {overall_avg_auc:.4f}")
     print(f"Overall Average F1 Score: {overall_avg_f1_score:.4f}")
 
-# Evaluate teacher and student models, and calculate overall averages
+
 evaluate_models(teacher_model, student_models, x_train, y_train)
 
 
-
-
-# Predict using student models
 def predict_with_student_models(student_models, image_path, image_size=(256, 256)):
     img = load_img(image_path, target_size=image_size)
     img_array = img_to_array(img) / 255.0
-    img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
+    img_array = np.expand_dims(img_array, axis=0)  
 
     predictions = []
     for student_model in student_models:
         predictions.append(student_model.predict(img_array)[0])
 
-    # Average the predictions of all student models
+
     final_mask = np.mean(predictions, axis=0)
 
     return final_mask
 
 
-# Predict blood vessel masks using student models
 while True:
     image_path = input("Enter the retinal image path (or type 'exit' to quit): ")
     if image_path.lower() == 'exit':
