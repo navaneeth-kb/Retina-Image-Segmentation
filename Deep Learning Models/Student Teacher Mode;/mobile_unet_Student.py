@@ -150,7 +150,7 @@ def mobile_unet(input_size=(256, 256, 3), filters=32):
 
 student_models = []
 for i in range(3):
-    student_model = mobile_unet(filters=32)  # Use Mobile UNet here
+    student_model = mobile_unet(filters=32)  
     student_model.compile(optimizer=Adam(), loss=dice_loss, metrics=['accuracy', tf.keras.metrics.MeanIoU(num_classes=2), tf.keras.metrics.AUC(name='auc'),
                                    f1_score])
     student_models.append(student_model)
@@ -163,7 +163,7 @@ for student_model in student_models:
     teacher_predictions = teacher_model.predict(x_train)
 
     # Loss is combined: ground truth + teacher predictions
-    student_model.fit(x_train, [y_train, teacher_predictions], epochs=2, batch_size=8, validation_split=0.1)
+    student_model.fit(x_train, [y_train, teacher_predictions], epochs=250, batch_size=8, validation_split=0.1)
 
 
 def evaluate_models(teacher_model, student_models, x_data, y_data):
