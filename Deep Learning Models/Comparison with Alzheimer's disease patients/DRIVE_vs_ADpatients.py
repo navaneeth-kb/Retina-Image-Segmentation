@@ -337,32 +337,44 @@ if (mask=='yes'):
 
 
 import cv2
-def fractal_dimension(image, threshold=128):
-    # Convert the image to binary (0 and 1)
-    binary_image = (image < threshold)
 
-    # Get the size of the image
-    sizes = np.logspace(1, np.log2(min(image.shape)), num=10, base=2, dtype=int)
+def fractal_dimension(image):
 
+    if len(image.shape) == 3:  # Convert to grayscale if it's RGB
+        image = color.rgb2gray(image)
+
+    # Convert to binary mask
+    binary_image = img_as_ubyte(image) > 128
+
+    # Perform box-counting
+    def box_count(binary_image, box_size):
+        count = 0
+        h, w = binary_image.shape
+        for i in range(0, h, box_size):
+            for j in range(0, w, box_size):
+                if np.any(binary_image[i:i + box_size, j:j + box_size]):
+                    count += 1
+        return count
+
+    # Iterate through box sizes
+    sizes = []
     counts = []
-    for size in sizes:
-        # Divide the image into boxes of size x size
-        box_count = 0
-        for y in range(0, image.shape[0], size):
-            for x in range(0, image.shape[1], size):
-                # Check if there are any pixels in the current box
-                if np.any(binary_image[y:y + size, x:x + size]):
-                    box_count += 1
-        counts.append(box_count)
+    min_size = 2
+    max_size = min(binary_image.shape) // 2
 
-    # Calculate the fractal dimension using linear regression on log-log scale
-    log_sizes = np.log(1.0 / sizes)
+    size = min_size
+    while size <= max_size:
+        sizes.append(size)
+        counts.append(box_count(binary_image, size))
+        size *= 2  # Increase the box size exponentially
+
+    # Calculate fractal dimension using the slope of log-log plot
+    log_sizes = np.log(1 / np.array(sizes))
     log_counts = np.log(counts)
-
-    # Fit a line and get the slope
     coeffs = np.polyfit(log_sizes, log_counts, 1)
-    return -coeffs[0]
+    fractal_dim = coeffs[0]
 
+    return fractal_dim
 
 fractal_dimensions_test = []
 
@@ -418,8 +430,8 @@ def predict_masks_AD(student_models, folder_path):
         predicted_mask = predict_with_student_models(student_models, image_path)
 
         # Calculate fractal dimension
-        fractal_dim = fractal_dimension(predicted_mask, threshold=128)
-        print(f"Fractal Dimension of the image: {fractal_dim:.4f}")
+        fractal_dim = fractal_dimension(predicted_mask)
+        print(f"Fractal Dimension: {fractal_dim}")
         fractal_dimensions_ADpatients.append(fractal_dim)
 
 while True:
