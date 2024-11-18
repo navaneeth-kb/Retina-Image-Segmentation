@@ -395,7 +395,7 @@ def predict_masks_in_folder(student_models, folder_path):
         predicted_mask = predict_with_student_models(student_models, image_path)
 
         # Calculate fractal dimension
-        fractal_dim = fractal_dimension(predicted_mask, threshold=128)
+        fractal_dim = fractal_dimension(predicted_mask)
         print(f"Fractal Dimension of the image: {fractal_dim:.4f}")
         fractal_dimensions_test.append(fractal_dim)
 
