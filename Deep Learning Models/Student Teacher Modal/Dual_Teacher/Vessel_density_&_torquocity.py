@@ -201,12 +201,12 @@ for i in range(2):
     student_models.append(student_model)
 
 print("\nStudent modals\n")
-
+y_train = y_train + combined_teacher_preds
 # Knowledge distillation- Train students with both ground truth and teacher's predictions
 for student_model in student_models:
 
     # Loss is combined: ground truth + combined teacher predictions
-    history3=student_model.fit(x_train, [y_train, combined_teacher_preds], epochs=1000, batch_size=8, validation_split=0.1)
+    history3=student_model.fit(x_train, y_train , epochs=1000, batch_size=8, validation_split=0.1)
 
 
 def evaluate_models(teacher_model1, teacher_model2, student_models, x_data, y_data):
